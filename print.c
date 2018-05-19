@@ -294,3 +294,14 @@ int PrintTcp(struct tcphdr *tcphdr, FILE *fp) {
 
   return (0)
 }
+
+int PrintUdp(struct udphdr *udphdr, FILE *fp) {
+  fprintf(fp, "udp--------------------------------\n");
+
+  fprintf(fp, "source=%u, ", ntohs(udphdr->source));
+  fprintf(fp, "dest=%u\n", ntohs(udphdr->dest));
+  fprintf(fp, "len=%u, ", udphdr->len);
+  fprintf(fp, "check=%u\n", ntohs(udphdr->check));
+
+  return (0)
+}
