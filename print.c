@@ -202,3 +202,43 @@ int PrintIp6Header(struct ip6_hdr, FILE *fp) {
 
   return (0);
 }
+
+int PrintIcmp(struct *icmp, FILE *fp) {
+  static char *icmp_type[] = {"Echo Reply",
+                              "undifined",
+                              "undifined",
+                              "Destination Unreachable",
+                              "Source Quench",
+                              "Redirect",
+                              "undifined",
+                              "undifined",
+                              "Echo Request",
+                              "Router Adverisment",
+                              "Router Selection",
+                              "Time Exceeded for Datagram",
+                              "Parameter Problem on Datagram",
+                              "Timestamp Request",
+                              "Timestamp Reply",
+                              "Information Request"
+                              "Information Reply",
+                              "Address Mask Request",
+                              "Address Mask Reply"};
+
+  fprintf(fp, "icmp-------------------------------\n");
+  fprintf(fp, "icmp_type=%u, ", icmp->icmp_type);
+  if (icmp->icmp_type <= 18) {
+    fprintf(fp, "(%s), ", icmp_type[icmp->icmp_type]);
+  } else {
+    fprintf(fp, "(undifined), ");
+  }
+
+  fprintf(fp, "icmp_code=%u, ", icmp->icmp_code);
+  fprintf(fp, "icmp_cksum=%u\n", ntohs(icmp->icmp_cksum));
+
+  if (icmp->icmp_type == 0 || icmp->icmp_type == 8) {
+    fprintf(fp, "icmp_id=%u, ", ntohs(icmp->icmp_id));
+    fprintf(fp, "icmp_seq=%u, ", ntohs(icmp->icmp_seq));
+  }
+
+  return (0);
+}
