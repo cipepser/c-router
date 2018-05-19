@@ -136,3 +136,45 @@ int PrintArp(struct ether_arp *arp, FILE *fp) {
 
   return (0);
 }
+
+static char *Proto[] = {
+    "undifined", "ICMP",      "IGMP",      "undifined", "IPIP",
+    "undifined", "TCP",       "undifined", "EGP",       "undifined",
+    "undifined", "undifined", "PUP",       "undifined", "undifined",
+    "undifined", "undifined", "UDP",
+};
+
+int PrintIpHeader(struct iphdr *iphdr, u_char *option, int optionLen, FILE *fp) {
+  int i;
+  char buf[80];
+  
+  fprintf(fp, "ip---------------------------------\n");
+  fprintf(fp, "version=%u, ", iphdr->version);
+  fprintf(fp, "ihl=%u, ", iphdr->ihl);
+  fprintf(fp, "tos=%x, ", iphdr->tos);
+  fprintf(fp, "tot_len=%u, ", ntohs(iphdr->tot_len));
+  fprintf(fp, "id=%u, ", ntohs(iphdr->id));
+  fprintf(fp, "frag_off=%x, %u, ", (ntohs(iphdr->frag_off)>>13)&0x07, ntohs(iphdr->frag_off)&0x1FFF);
+  fprintf(fp, "ttl=%u, ", iphdr->ttl);
+  fprintf(fp, "protocol=%u, ", iphdr->protocol);
+  if (iphdr->protocol <= 17) {
+    fprintf(fp, "(%s), ", Proto[iphdr->protocol]);
+  } else {
+    fprintf(fp, "(undifined), ");
+  }
+  fprintf(fp, "check=%x\n", iphdr->check);
+  fprintf(fp, "saddr=%s, ", ip_ip2str(iphdr->saddr, buf, sizeof(buf)));
+  fprintf(fp, "daddr=%s, ", ip_ip2str(iphdr->saddr, buf, sizeof(buf)));
+  if (optionLen > 0) {
+    fprintf(fp, "option:");
+    for (i = 0; i < optionLen; i++) {
+      if (i != 0) {
+        fprintf(fp, ":%02x", option[i]); // これ必要？
+      } else {
+        fprintf(fp, "%02x", option[i]);
+      }
+    }
+  }
+  
+  return (0);
+}
