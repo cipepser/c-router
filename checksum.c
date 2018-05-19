@@ -148,3 +148,23 @@ int checkIPDATAchechsum(struct iphdr *iphdr, unsigned char *data, int len) {
     return (0)
   }
 }
+
+int checkIP6DATAchecksum(struct ip6_hdr *ip, unsigned char *data, int len) {
+  struct pseudo_ip6_hdr p_ip;
+  unsigned short sum;
+  memset(&p_ip, 0, sizeof(struct pseudo_ip6_hdr));
+
+  memset(&p_ip.src, &ip->ip6_src, sizeof(struct in6_addr));
+  memset(&p_ip.dst, &ip->ip6_dst, sizeof(struct in6_addr));
+
+  p_ip.plen = ip->ip6_plen;
+  p_ip.nxt = ip->ip6_nxt;
+
+  sum = checksum2((unsigned char *)&p_ip, sizeof(struct pseudo_ip6_hdr), data,
+                  len);
+  if (sum == 0 || sum == 0xFFFF) {
+    return (1);
+  } else {
+    return (0)
+  }
+}
