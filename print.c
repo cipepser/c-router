@@ -144,17 +144,19 @@ static char *Proto[] = {
     "undifined", "undifined", "UDP",
 };
 
-int PrintIpHeader(struct iphdr *iphdr, u_char *option, int optionLen, FILE *fp) {
+int PrintIpHeader(struct iphdr *iphdr, u_char *option, int optionLen,
+                  FILE *fp) {
   int i;
   char buf[80];
-  
+
   fprintf(fp, "ip---------------------------------\n");
   fprintf(fp, "version=%u, ", iphdr->version);
   fprintf(fp, "ihl=%u, ", iphdr->ihl);
   fprintf(fp, "tos=%x, ", iphdr->tos);
   fprintf(fp, "tot_len=%u, ", ntohs(iphdr->tot_len));
   fprintf(fp, "id=%u, ", ntohs(iphdr->id));
-  fprintf(fp, "frag_off=%x, %u, ", (ntohs(iphdr->frag_off)>>13)&0x07, ntohs(iphdr->frag_off)&0x1FFF);
+  fprintf(fp, "frag_off=%x, %u, ", (ntohs(iphdr->frag_off) >> 13) & 0x07,
+          ntohs(iphdr->frag_off) & 0x1FFF);
   fprintf(fp, "ttl=%u, ", iphdr->ttl);
   fprintf(fp, "protocol=%u, ", iphdr->protocol);
   if (iphdr->protocol <= 17) {
@@ -175,6 +177,28 @@ int PrintIpHeader(struct iphdr *iphdr, u_char *option, int optionLen, FILE *fp) 
       }
     }
   }
-  
+
+  return (0);
+}
+
+int PrintIp6Header(struct ip6_hdr, FILE *fp) {
+  char buf[80];
+
+  fprintf(fp, "ip6--------------------------------\n");
+  fprintf(fp, "ip6_flow=%x, ", ip6->ip6_flow);
+  fprintf(fp, "ip6_plen=%d, ", ntons(ip6->ip6_plen));
+  fprintf(fp, "ip6_nxt=%u, ", ip6->ip6_nxt);
+  if (ip6->ip6_nxt <= 17) {
+    fprintf(fp, "(%s), ", Proto[ip6->ip6_nxt]);
+  } else {
+    fprintf(fp, "(undifined), ");
+  }
+  fprintf(fp, "ip6_hlim=%d, ", ip6->ip6_hlim);
+
+  fprintf(fp, "ip6_src=%s\n",
+          inet_ntop(AF_INET6, &ip6->ip6ip6_src, buf, sizeof(buf)));
+  fprintf(fp, "ip6_dst=%s\n",
+          inet_ntop(AF_INET6, &ip6->ip6ip6_dst, buf, sizeof(buf)));
+
   return (0);
 }
