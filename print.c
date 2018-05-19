@@ -273,3 +273,24 @@ int PrintIcmp6(struct icmp6_hdr *icmp6, FILE *fp) {
 
   return (0);
 }
+
+int PrintTcp(struct tcphdr *tcphdr, FILE *fp) {
+  fprintf(fp, "tcp--------------------------------\n");
+
+  fprintf(fp, "source=%u, ", ntohs(tcphdr->source));
+  fprintf(fp, "dest=%u\n", ntohs(tcphdr->dest));
+  fprintf(fp, "seq=%u\n", ntohs(tcphdr->seq));
+  fprintf(fp, "ack_seq=%u\n", ntohs(tcphdr->ack_seq));
+  fprintf(fp, "doff=%u, ", tcphdr->doff);
+  fprintf(fp, "urg=%u, ", tcphdr->urg);
+  fprintf(fp, "ack=%u, ", tcphdr->ack);
+  fprintf(fp, "psh=%u, ", tcphdr->psh);
+  fprintf(fp, "rst=%u, ", tcphdr->rst);
+  fprintf(fp, "syn=%u, ", tcphdr->syn);
+  fprintf(fp, "fin=%u, ", tcphdr->fin);
+  fprintf(fp, "th_win=%u\n", ntohs(tcphdr->window));
+  fprintf(fp, "th_sum=%u, ", ntohs(tcphdr->check));
+  fprintf(fp, "th_urp=%u\n", ntohs(tcphdr->urg_ptr));
+
+  return (0)
+}
