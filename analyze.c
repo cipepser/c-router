@@ -196,3 +196,83 @@ int AnalyzeIp(u_char *data, int size) {
 
   return (0);
 }
+
+int AnalyzeIpv6(u_char *data, int size) {
+  u_char *ptr;
+  int lest;
+  struct ip6_hdr *ipv6;
+  int len;
+
+  ptr = data;
+  lest = size;
+
+  if (lest < sizeof(struct ip6_hdr)) {
+    fprintf(stderr, "lest(%d) < sizeof(struct ip6_hdr)\n", lest);
+    return (-1);
+  }
+
+  ipv6 = (struct ipv6 *)ptr;
+  ptr += sizeof(struct ipv6);
+  lest -= sizeof(struct ipv6);
+
+  PrintIp6Header(ipv6, stdout);
+  
+  if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
+    len = ntohs(ip6->ip6_plen);
+    if (checkIP6DATAchecksum(ip6, ptr, len) == 0) {
+      fprintf(stderr, "bad icmp6 checksum\n");
+      return (-1);
+    }
+    AnalyzeIcmp6(ptr, lest);
+  } else if (ip6->ip6ip6_nxt == IPPROTO_TCP) {
+    len = ntohs(ip6->ip6_plen);
+    if (checkIP6DATAchecksum(ip6, ptr, len) == 0) {
+      fprintf(stderr, "bad tcp6 checksum\n");
+      return (-1);
+    }
+    AnalyzeTcp(ptr, lest);
+  } else if (ip6->ip6_nxt == IPPROTO_UDP) {
+    len = ntohs(ip6->ip6_plen);
+    if (checkIP6DATAchecksum(ip6, ptr, len) == 0) {
+      fprintf(stderr, "bad udp6 checksum\n");
+      return (-1);
+    }
+    AnalyzeUdp(ptr, lest);
+  }
+
+  return (0);
+}
+
+int AnalyzePacket(u_char *data, int size) {
+  u_char *ptr;
+  int lest;
+  struct ether_header *eh;
+
+  ptr = data;
+  lest = size;
+
+  if (lest < sizeof(struct ether_header)) {
+    fprintf(stderr, "lest(%d) < sizeof(struct ether_header)\n", lest);
+    return (-1);
+  }
+
+  eh = (struct ether_header *)ptr;
+  ptr += sizeof(struct ether_header);
+  lest -= sizeof(struct ether_header);
+
+  if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
+    fprintf(stderr, "Packet[%dbytes]\n", size);
+    PrintEtherHeader(eh, stdout);
+    PrintArp(ptr, stdout);
+  } else if (ntohs(eh->ether_type) == ETHERTYPE_IP) {
+    fprintf(stderr, "Packet[%dbytes]\n", size);
+    PrintEtherHeader(eh, stdout);
+    PrintIp(ptr, stdout);
+  } else if (ntohs(eh->ether_type) == ETHERTYPE_IPV6) {
+    fprintf(stderr, "Packet[%dbytes]\n", size);
+    PrintEtherHeader(eh, stdout);
+    PrintIp(ptr, stdout);
+  }
+  
+  return (0);
+}
