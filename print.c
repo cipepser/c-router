@@ -65,3 +65,74 @@ int PrintEtherHeader(struct ether_header *eh, FILE *fp) {
 
   return (0);
 }
+
+int PrintArp(struct ether_arp *arp, FILE *fp) {
+  static char *hrd[] = {"From KA9Q: NET/ROM pseudo",
+                        "Ethernet 10/100Mbps.",
+                        "Experimental Ethernet.",
+                        "AX.25 Level 2",
+                        "PROnet token ring.",
+                        "Chaosnet.",
+                        "IEEE 802.2 Ethernet/TR/TB.",
+                        "ARCnet",
+                        "APPLEtalk.",
+                        "undefine",
+                        "undefine",
+                        "undefine",
+                        "undefine",
+                        "undefine",
+                        "undefine",
+                        "Frame Relay DLCI.",
+                        "undefine",
+                        "undefine",
+                        "undefine",
+                        "ATM.",
+                        "undefine",
+                        "undefine",
+                        "undefine",
+                        "Metricom STRIP (new IANA id)."};
+  static char *op[] = {"undefine",     "ARP request",  "ARP reply",
+                       "RARP request", "RARP reply",   "undefine",
+                       "undefine",     "undefine",     "InARP request",
+                       "InARP reply",  "(ATM)ARP NAK."};
+
+  char buf[80];
+
+  fprintf(fp, "arp--------------------------------\n");
+  fprintf(fp, "arp_hdr=%u\n", ntohs(arp->arp_hdr));
+  if (ntohs(arp->arp_hdr) <= 23) {
+    fprintf(fp, "(%s), ", hrd[ntohs(arp->arp_hdr)]);
+  } else {
+    fprintf(fp, "(undefined), ");
+  }
+  fprintf(fp, "arp_pro=%u\n", ntohs(arp->arp_pro));
+
+  switch (ntohs(arp->arp_pro)) {
+  case ETHERTYPE_IP:
+    fprintf(fp, "(IP)\n");
+    break;
+  case ETHERTYPE_ARP:
+    fprintf(fp, "(ARP)\n");
+    break;
+  case ETHERTYPE_IPV6:
+    fprintf(fp, "(IPv6)\n");
+    break;
+  default:
+    fprintf(fp, "(unknown)\n");
+    break;
+  }
+  fprintf(fp, "arp_hln=%u\n", arp->arp_hln);
+  fprintf(fp, "arp_pln=%u\n", arp->arp_pln);
+  fprintf(fp, "arp_op=%u\n", ntohs(arp->arp_op));
+  if (ntohs(arp->arp_op) <= 10) {
+    fprintf(fp, "(%s)\n", op[ntohs(arp->arp_op)]);
+  } else {
+    fprintf(fp, "(undefine)\n");
+  }
+  fprintf(fp, "arp_sha%s\n", my_ether_ntoa_r(arp->arp_sha, buf, sizeof(buf)));
+  fprintf(fp, "arp_spa%s\n", arp_ip2str(arp->arp_spa, buf, sizeof(buf)));
+  fprintf(fp, "arp_tha%s\n", my_ether_ntoa_r(arp->arp_ha, buf, sizeof(buf)));
+  fprintf(fp, "arp_tpa%s\n", arp_ip2str(arp->arp_tpa, buf, sizeof(buf)));
+
+  return (0);
+}
