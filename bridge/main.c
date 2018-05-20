@@ -1,14 +1,14 @@
-#include "netutil.h"
-#include <arpa/inet.h>
-#include <errno.h>
-#include <netinet/if_ether.h>
-#include <poll.h>
-#include <signal.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <unistd.h>
+#include <poll.h>
+#include <errno.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/if_ether.h>
+#include "netutil.h"
 
 typedef struct {
   char *Device1;
@@ -16,7 +16,7 @@ typedef struct {
   int DebugOut;
 } PARAM;
 
-PARAM Param = {"eth0", "eth1", 0};
+PARAM Param = {"eth0", "lo", 0};
 
 typedef struct {
   int soc;
@@ -30,7 +30,7 @@ int DebugPrintf(char *fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
-    vprintf(stderr, fmt, args);
+    vfprintf(stderr, fmt, args);
     va_end(args);
   }
 

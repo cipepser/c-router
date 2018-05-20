@@ -1,18 +1,13 @@
-#include "netutil.h"
-#include <"net/ethernet.h">
-#include <"netpacket/packet.h">
-#include <arpa/inet.h>
-#include <errno.h>
-#include <linux/if.h>
-#include <netinet/if_ether.h>
-#include <poll.h>
-#include <signal.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <linux/if.h>
+#include <net/ethernet.h>
+#include <netpacket/packet.h>
+#include <netinet/if_ether.h>
 
 extern int DebugPrintf(char *fmt, ...);
 extern int DebugPerror(char *msg);
