@@ -126,7 +126,37 @@ void EndSignal(int sig) {
   EndFlag = 1;
 }
 
-
+int main(int argc, char *argv[], char *envp[]) {
+  if ((Device[0].soc = InitRawSocket(Param.Device1, 1, 0)) == -1) {
+    DebugPrintf("InitRawSocket:error:%s\n", Param.Device1);
+    return (-1);
+  }
+  DebugPrintf("%s OK\n", Param.Device1);
+  
+  if ((Device[1].soc = InitRawSocket(Param.Device2, 1, 0)) == -1) {
+    DebugPrintf("InitRawSocket:error:%s\n", Param.Device2);
+    return (-1);
+  }
+  DebugPrintf("%s OK\n", Param.Device2);
+  
+  DisableIpForward();
+  
+  signal(SIGINT, EndSignal);
+  signal(SIGTERM, EndSignal);
+  signal(SIGQUIT, EndSignal);
+  signal(SIGPIPE, SIG_IGN);
+  signal(SIGTTIN, SIG_IGN);
+  signal(SIGTTOU, SIG_IGN);
+  
+  DebugPrintf("bridge start\n");
+  Bridge();
+  DebugPrintf("bridge end\n");
+  
+  close(Device[0].soc);
+  close(Device[1].soc);
+  
+  return (0);
+}
 
 
 
