@@ -2,3 +2,4 @@
 .vagrant
 *.o
 ltest
+pcap

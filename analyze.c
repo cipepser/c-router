@@ -1,5 +1,3 @@
-#include "checksum.h"
-#include "print.h"
 #include <arpa/inet.h>
 #include <linux/if.h>
 #include <net/ethernet.h>
@@ -16,6 +14,8 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include "checksum.h"
+#include "print.h"
 
 #ifndef ETHERTYPE_IPV6
 #define ETHERTYPE_IPV6 0x86dd
@@ -168,7 +168,7 @@ int AnalyzeIp(u_char *data, int size) {
 
   PrintIpHeader(iphdr, option, optionLen, stdout);
 
-  if (iphd->protocol == IPPROTO_ICMP) {
+  if (iphdr->protocol == IPPROTO_ICMP) {
     len = ntohs(iphdr->tot_len) - iphdr->ihl * 4;
     sum = checksum(ptr, len);
     if (sum != 0 && sum != 0xFFFF) {
@@ -178,7 +178,7 @@ int AnalyzeIp(u_char *data, int size) {
     AnalyzeIcmp(ptr, lest);
   } else if (iphdr->protocol == IPPROTO_TCP) {
     len = ntohs(iphdr->tot_len) - iphdr->ihl * 4;
-    if (checkIPDATAchechsum(iphdr, ptr, len) == 0) {
+    if (checkIPDATAchecksum(iphdr, ptr, len) == 0) {
       fprintf(stderr, "bad tcp checksum\n");
       return (-1);
     }
@@ -200,7 +200,7 @@ int AnalyzeIp(u_char *data, int size) {
 int AnalyzeIpv6(u_char *data, int size) {
   u_char *ptr;
   int lest;
-  struct ip6_hdr *ipv6;
+  struct ip6_hdr *ip6;
   int len;
 
   ptr = data;
@@ -211,12 +211,12 @@ int AnalyzeIpv6(u_char *data, int size) {
     return (-1);
   }
 
-  ipv6 = (struct ipv6 *)ptr;
-  ptr += sizeof(struct ipv6);
-  lest -= sizeof(struct ipv6);
+  ip6 = (struct ip6_hdr *)ptr;
+  ptr += sizeof(struct ip6_hdr);
+  lest -= sizeof(struct ip6_hdr);
 
-  PrintIp6Header(ipv6, stdout);
-  
+  PrintIp6Header(ip6, stdout);
+
   if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
     len = ntohs(ip6->ip6_plen);
     if (checkIP6DATAchecksum(ip6, ptr, len) == 0) {
@@ -224,7 +224,7 @@ int AnalyzeIpv6(u_char *data, int size) {
       return (-1);
     }
     AnalyzeIcmp6(ptr, lest);
-  } else if (ip6->ip6ip6_nxt == IPPROTO_TCP) {
+  } else if (ip6->ip6_nxt == IPPROTO_TCP) {
     len = ntohs(ip6->ip6_plen);
     if (checkIP6DATAchecksum(ip6, ptr, len) == 0) {
       fprintf(stderr, "bad tcp6 checksum\n");
@@ -263,16 +263,16 @@ int AnalyzePacket(u_char *data, int size) {
   if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
     fprintf(stderr, "Packet[%dbytes]\n", size);
     PrintEtherHeader(eh, stdout);
-    PrintArp(ptr, stdout);
+    AnalyzeArp(ptr, lest);
   } else if (ntohs(eh->ether_type) == ETHERTYPE_IP) {
     fprintf(stderr, "Packet[%dbytes]\n", size);
     PrintEtherHeader(eh, stdout);
-    PrintIp(ptr, stdout);
+    AnalyzeIp(ptr, lest);
   } else if (ntohs(eh->ether_type) == ETHERTYPE_IPV6) {
     fprintf(stderr, "Packet[%dbytes]\n", size);
     PrintEtherHeader(eh, stdout);
-    PrintIp(ptr, stdout);
+    AnalyzeIp(ptr, lest);
   }
-  
+
   return (0);
 }
