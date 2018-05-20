@@ -108,3 +108,48 @@ int Bridge() {
   }
   return (0);
 }
+
+int DisableIpForward() {
+  FILE *fp;
+  
+  if ((fp = fopen("/proc/sys/net/ipv4/ip_forward", "w")) == NULL) {
+    DebugPrintf("cannot write /proc/sys/net/ipv4/ip_forward\n");
+    return (-1);
+  }
+  fputs("0", fp);
+  fclose(fp);
+  
+  return (0);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
