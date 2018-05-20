@@ -122,7 +122,9 @@ int DisableIpForward() {
   return (0);
 }
 
-
+void EndSignal(int sig) {
+  EndFlag = 1;
+}
 
 
 
