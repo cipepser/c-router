@@ -16,7 +16,7 @@ typedef struct {
   int DebugOut;
 } PARAM;
 
-PARAM Param = {"eth0", "lo", 0};
+PARAM Param = {"eth1", "eth2", 0};
 
 typedef struct {
   int soc;
