@@ -1,7 +1,7 @@
 typedef struct {
   int soc;
   u_char hwaddr[6];
-  struct in_addr addr, subnet, netmast;
+  struct in_addr addr, subnet, netmask;
 } DEVICE;
 
 #define FLAG_FREE
