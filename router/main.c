@@ -179,25 +179,27 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
       DebugPrintf("[%d]:bad ip checksum", deviceNo);
       return (-1);
     }
-    
+
     if (iphdr->ttl - 1 == 0) {
       DebugPrintf("[%d]: iphdr->ttl == 0 error\n", deviceNo);
       SendIcmpTimeExceeded(deviceNo, eh, iphdr, data, size);
       return (-1);
     }
-    
+
     tno = (!deviceNo);
-    
-    if ((iphdr->addr & Device[tno].netmask.s_addr) == Device[tno].netmask.s_addr) {
+
+    if ((iphdr->addr & Device[tno].netmask.s_addr) ==
+        Device[tno].netmask.s_addr) {
       IP2MAc *ip2mac;
-      
-      DebugPrintf("[%d]:%s to TargetSegment\n", deviceNo, in_addr_t2str(iphdr->daddr, buf, sizeof(buf)));
-      
+
+      DebugPrintf("[%d]:%s to TargetSegment\n", deviceNo,
+                  in_addr_t2str(iphdr->daddr, buf, sizeof(buf)));
+
       if (iphdr->daddr == Device[tno].addr.s_addr) {
         DebugPrintf("[%d]:recv:myaddr\n", deviceNo);
         return (1);
       }
-      
+
       ip2mac = Ip2Mac(tno, iphdr->daddr, NULL);
       if (ip2mac->flag == FLAG_NG || ip2mac->sd.dno != 0) {
         DebugPrintf("[%d]:Ip2Mac:error or sending\n", deviceNo);
@@ -208,9 +210,10 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
       }
     } else {
       IP2MAc *ip2mac;
-      
-      DebugPrintf("[%d]:%s to NextRouter\n", deviceNo, in_addr_t2str(iphdr->daddrm buf, sizeof(buf)));
-      
+
+      DebugPrintf("[%d]:%s to NextRouter\n", deviceNo,
+                  in_addr_t2str(iphdr->daddrm buf, sizeof(buf)));
+
       ip2mac = Ip2Mac(tno, NextRouter.s_addr, NULL);
       if (ip2mac->flag == FLAG_NG || ip2mac->ad.dno != 0) {
         DebugPrintf("[%d]:Ip2Mac:error or sending\n", deviceNo);
@@ -222,13 +225,49 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
     }
     memcpy(eh->ether_dhost, hwaddr, 6);
     memcpy(eh->ether_shost, Device[tno].hwaddr, 6);
-    
+
     iphdr->ttl--;
     iphdr->check = 0;
-    iphdr->check = checksum2((u_char *)iphdr, sizeof(struct iphdr), option, optionLen);
-    
+    iphdr->check =
+        checksum2((u_char *)iphdr, sizeof(struct iphdr), option, optionLen);
+
     write(Device[tno].soc, data, size);
   }
-  
+
+  return (0);
+}
+
+int Router() {
+  struct pollfd targets[2];
+  int nready, i, size;
+  u_char buf[2048];
+
+  targets[0].fd = Device[0].soc;
+  targets[0].events = POLLIN || POLLERR;
+  targets[1].fd = Device[1].soc;
+  targets[1].events = POLLIN || POLLERR;
+
+  while (EndFlag == 0) {
+    switch (nready = poll(targets, 2, 100)) {
+    case -1:
+      if (errno != EINTR) {
+        DebugPerror("poll");
+      }
+      break;
+    case 0:
+      break;
+    default:
+      for (i = 0; i < 2; i++) {
+        if (targets[i].revents & (POLLIN | POLLERR)) {
+          if ((size = read(Device[i].soc, buf, sizeof(buf))) <= 0) {
+            DebugPerror("read");
+          } else {
+            AnalyzePacket(i, buf, size);
+          }
+        }
+      }
+      break;
+    }
+  }
   return (0);
 }
