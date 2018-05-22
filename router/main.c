@@ -285,8 +285,15 @@ int DisableIpForward() {
   return (0);
 }
 
+void *BufThread(void *arg) {
+  BufferSend();
+  
+  return (NULL);
+}
 
-
+void EndSignal(int sig) {
+  EndFlag = 1;
+}
 
 
 
