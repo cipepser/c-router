@@ -119,3 +119,36 @@ int GetDeviceInfo(char *device, u_char hwaddr[6], struct in_addr *uaddr,
 
   return (0);
 }
+
+char *my_ether_ntoa_r(u_char *hwaddr, char *buf, socklen_t size) {
+  snprintf(buf, size, "%02x:%02x:%02x:%02x:%02x:%02x", hwaddr[0], hwaddr[1],
+           hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5]);
+  return (buf);
+}
+
+char *my_inet_ntoa_r(struct in_addr *addr, char *buf, socklen_t size) {
+  inet_ntop(PF_INET, addr, buf, size);
+  return (buf);
+}
+
+char *in_addr_t2str(in_addr_t addr, char *buf, socklen_t size) {
+  struct in_addr a;
+  
+  a.s_addr = addr;
+  inet_ntop(PF_INET, &a, buf, size);
+  
+  return (buf);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
