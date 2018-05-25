@@ -151,3 +151,54 @@ IP2MAC *Ip2Mac(int deviceNo, in_addr_t addr, u_char *hwaddr) {
     return (ip2mac);
   }
 }
+
+int BufferSendOne(int deviceNo, IP2MAC *ip2mac) {
+  struct ether_header eh;
+  struct iphdr iphdr;
+  u_char option[1500];
+  int optionLen;
+  int size;
+  u_char *data;
+  u_char *ptr;
+
+  while (1) {
+    if (GetSendData(ip2mac, &size, &data) == -1) {
+      break;
+    }
+
+    ptr = data;
+
+    memcpy(&eh, ptr, sizeof(struct ether_header));
+    ptr += sizeof(struct ether_header);
+
+    memcpy(&iphdr, ptr, sizeof(struct iphdr));
+    ptr += sizeof(struct iphdr);
+
+    optionLen = iphdr.ihl * 4 - sizeof(struct iphdr);
+    if (optionLen > 0) {
+      memcpy(option, ptr, optionLen);
+      ptr += optionLen;
+    }
+
+    memcpy(eh.ether_dhost, ip2mac->hwaddr, 6);
+    memcpy(data, &eh, sizeof(struct ether_header));
+
+    DebugPrintf("iphdr.ttl %d->%d\n", iphdr.ttl, iphdr.ttl - 1);
+    iphdr.ttl--;
+
+    iphdr.check = 0;
+    iphdr.check =
+        checksum2((u_char *)&iphdr, sizeof(struct iphdr), option, optionLen);
+    memcpy(data + sizeof(struct ether_header), &iphdr, sizeof(struct iphdr));
+
+    DebugPrintf("write:BufferSendOne:[%d] %dbytes\n", deviceNo, size);
+    write(Device[deviceNo].soc, data, size);
+
+    // DebugPrintf("********************************[%d]\n", deviceNo);
+    // print_ether_header(&eh);
+    // print_ip(&ip);
+    // DebugPrintf("********************************[%d]\n", deviceNo);
+  }
+
+  return (0);
+}
