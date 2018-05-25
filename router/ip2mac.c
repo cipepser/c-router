@@ -132,3 +132,22 @@ IP2MAC *ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
 
   return (ip2mac);
 }
+
+IP2MAC *Ip2Mac(int deviceNo, in_addr_t addr, u_char *hwaddr) {
+  IP2MAC *ip2mac;
+  static u_char bcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+  char buf[80];
+
+  ip2mac = Ip2ip2MacSearch(deviceNo, addr, hwaddr);
+  if (ip2mac->flag == FLAG_OK) {
+    DebugPrintf("Ip2Mac(%s):OK\n", in_addr_t2str(addr, buf, sizeof(buf)));
+    return (ip2mac);
+  } else {
+    DebugPrintf("Ip2Mac(%s):NG\n", in_addr_t2str(addr, buf, sizeof(buf)));
+    DebugPrintf("Ip2Mac(%s):Send Arp Request\n",
+                in_addr_t2str(addr, buf, sizeof(buf)));
+    SendArpRequestB(Device[deviceNo].soc, addr, bcast, Device[deviceNo].addr,
+                    Device[deviceNo].hwaddr);
+    return (ip2mac);
+  }
+}
