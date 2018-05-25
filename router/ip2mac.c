@@ -286,3 +286,34 @@ int GetSendReqData(int *deviceNo, int *ip2macNo) {
 
   return (0);
 }
+
+int BufferSend() {
+  struct timeval now;
+  struct timespec timeout;
+  int deviceNo, ip2macNo;
+  int status;
+
+  while (EndFlag == 0) {
+    gettimeofday(&now, NULL);
+    timeout.tv_sec = now.tv_sec + 1;
+    timeout.tv_nsec = now.tv_usec * 1000;
+
+    pthread_mutex_lock(&SendReq.mutex);
+    if ((status = pthread_cond_timedwait(&SendReq.cond, &SendReq.mutex,
+                                         &timeout)) != 0) {
+      DebugPrintf("pthread_cond_timedwait:%s\n", strerror(status));
+    }
+    pthread_mutex_unlock(&SendReq.mutex);
+
+    while (1) {
+      if (GetSendReqData(&deviceNo, &ip2macNo) == -1) {
+        break;
+      }
+      BufferSendOne(&deviceNo, &Ip2Macs[deviceNo].data[ip2macNo]);
+    }
+  }
+
+  DebugPrintf("BufferSend:end\n");
+
+  return (0);
+}
