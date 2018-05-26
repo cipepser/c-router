@@ -55,3 +55,11 @@ $ sudo ./bridge
 06:45:01.964442 IP 192.168.0.1 > 192.168.0.130: ICMP echo request, id 7703, seq 0, length 64
 06:45:01.964463 IP 192.168.0.130 > 192.168.0.1: ICMP echo reply, id 7703, seq 0, length 64
 ```
+
+## Apendix
+
+### vagrantでhost OSとguest OSの共有フォルダがmountできない
+
+`vagrant vbguest`だけでは解決しなかったが、以下で解決した。
+
+[LPIC対策にVirtual Box上のCentOS7にGuest Additonsを入れる際にハマった](https://qiita.com/YusakuS16/items/94c430a7ef735ed08a16)
