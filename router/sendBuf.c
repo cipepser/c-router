@@ -61,3 +61,75 @@ int AppendSendData(IP2MAC *ip2mac, int deviceNo, in_addr_t addr, u_char *data,
 
   return (0);
 }
+
+int GetSendData(IP2MAC *ip2mac, int *size, u_char **data) {
+  SEND_DATA *sd = &ip2mac->sd;
+  DATA_BUF *d;
+  int status;
+  char buf[80];
+  
+  if (sd->top == NULL) {
+    return (-1);
+  }
+  
+  if((status = pthread_mutex_lock(&sd->mutex)) != 0) {
+    DebugPrintf("pthread_mutex_lock:%s\n", strerror(status));
+    return (-1);
+  }
+  d = sd->top;
+  sd->top = d->next;
+  if(sd->top == NULL) {
+    sd->bottom = NULL;
+  } else {
+    sd->top->before = NULL;
+  }
+  sd->dno--;
+  sd->inBucketSize -= d->size;
+  
+  pthread_mutex_unlock(&sd->mutex);
+  
+  *size = d->size;
+  *data = d->data;
+  
+  free(d);
+  
+  DebugPrintf("GetSendData:[%d] %s %dbytes\n", ip2mac->deviceNo, in_addr_t2str(ip2mac->addr, buf, sizeof(buf)), *size);
+  
+  return (0);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
