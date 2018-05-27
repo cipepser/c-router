@@ -1,7 +1,3 @@
-#include "base.h"
-#include "ip2mac.h"
-#include "netutil.h"
-#include "sendBuf.h"
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netinet/if_ether.h>
@@ -15,6 +11,10 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include "base.h"
+#include "ip2mac.h"
+#include "netutil.h"
+#include "sendBuf.h"
 
 typedef struct {
   char *Device1;
@@ -22,7 +22,7 @@ typedef struct {
   int DebugOut;
   char *NextRouter;
 } PARAM;
-PARAM Param = {"eth1", "eth2", 0, "192.168.0.254"};
+PARAM Param = {"eth1", "eth2", 1, "10.0.2.2"};
 
 struct in_addr NextRouter;
 
@@ -75,7 +75,7 @@ int SendIcmpTimeExceeded(int deviceNo, struct ether_header *eh,
   rih.saddr = Device[deviceNo].addr.s_addr;
   rih.daddr = iphdr->saddr;
 
-  rih.check = checksum((u_char *)&rih.sizeof(struct iphdr));
+  rih.check = checksum((u_char *)&rih, sizeof(struct iphdr));
 
   icmp.icmp_type = ICMP_TIME_EXCEEDED;
   icmp.icmp_code = ICMP_TIMXCEED_INTRANS;
@@ -89,7 +89,7 @@ int SendIcmpTimeExceeded(int deviceNo, struct ether_header *eh,
   ptr = buf;
   memcpy(ptr, &reh, sizeof(struct ether_header));
   ptr += sizeof(struct ether_header);
-  memcpy(ptr, &rhi, sizeof(struct iphdr));
+  memcpy(ptr, &rih, sizeof(struct iphdr));
   ptr += sizeof(struct iphdr);
   memcpy(ptr, &icmp, 8);
   ptr += 8;
@@ -188,9 +188,9 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
 
     tno = (!deviceNo);
 
-    if ((iphdr->addr & Device[tno].netmask.s_addr) ==
+    if ((iphdr->daddr & Device[tno].netmask.s_addr) ==
         Device[tno].netmask.s_addr) {
-      IP2MAc *ip2mac;
+      IP2MAC *ip2mac;
 
       DebugPrintf("[%d]:%s to TargetSegment\n", deviceNo,
                   in_addr_t2str(iphdr->daddr, buf, sizeof(buf)));
@@ -209,13 +209,13 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
         memcpy(hwaddr, ip2mac->hwaddr, 6);
       }
     } else {
-      IP2MAc *ip2mac;
+      IP2MAC *ip2mac;
 
       DebugPrintf("[%d]:%s to NextRouter\n", deviceNo,
-                  in_addr_t2str(iphdr->daddrm buf, sizeof(buf)));
+                  in_addr_t2str(iphdr->daddr, buf, sizeof(buf)));
 
       ip2mac = Ip2Mac(tno, NextRouter.s_addr, NULL);
-      if (ip2mac->flag == FLAG_NG || ip2mac->ad.dno != 0) {
+      if (ip2mac->flag == FLAG_NG || ip2mac->sd.dno != 0) {
         DebugPrintf("[%d]:Ip2Mac:error or sending\n", deviceNo);
         AppendSendData(ip2mac, 1, NextRouter.s_addr, data, size);
         return (-1);
@@ -301,7 +301,7 @@ int main(int argc, char *argv[], char *envp[]) {
   int status;
 
   inet_aton(Param.NextRouter, &NextRouter);
-  DebugPerror("NextRouter=%s\n", my_inet_ntoa_r(&NextRouter, buf, sizeof(buf)));
+  DebugPrintf("NextRouter=%s\n", my_inet_ntoa_r(&NextRouter, buf, sizeof(buf)));
 
   if (GetDeviceInfo(Param.Device1, Device[0].hwaddr, &Device[0].addr,
                     &Device[0].subnet, &Device[0].netmask) == -1) {

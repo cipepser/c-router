@@ -1,13 +1,14 @@
-#include <arpa/inet.h>
-#include <linux/if.h>
-#include <net/ethernet.h>
-#include <netinet/if_ether.h>
-#include <netpacket/packet.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <linux/if.h>
+#include <net/ethernet.h>
+#include <netinet/ip.h>
+#include <netinet/if_ether.h>
+#include <netpacket/packet.h>
 
 extern int DebugPrintf(char *fmt, ...);
 extern int DebugPerror(char *msg);
@@ -80,7 +81,7 @@ int GetDeviceInfo(char *device, u_char hwaddr[6], struct in_addr *uaddr,
   }
 
   memset(&ifreq, 0, sizeof(struct ifreq));
-  strncpy(ifreq.ifr_name, device, sizeof(ireq.ifr_name) - 1);
+  strncpy(ifreq.ifr_name, device, sizeof(ifreq.ifr_name) - 1);
 
   if (ioctl(soc, SIOCGIFHWADDR, &ifreq) == -1) {
     DebugPerror("ioctl");
@@ -88,7 +89,7 @@ int GetDeviceInfo(char *device, u_char hwaddr[6], struct in_addr *uaddr,
     return (-1);
   } else {
     p = (u_char *)&ifreq.ifr_hwaddr.sa_data;
-    memcpy(hwaddr.p, 6);
+    memcpy(hwaddr, p, 6);
   }
 
   if (ioctl(soc, SIOCGIFADDR, &ifreq) == -1) {

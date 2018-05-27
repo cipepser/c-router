@@ -1,6 +1,3 @@
-#include "base.h"
-#include "ip2mac.h"
-#include "netutil.h"
 #include <errno.h>
 #include <net/ethernet.h>
 #include <netinet/in.h>
@@ -10,6 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include "base.h"
+#include "ip2mac.h"
+#include "netutil.h"
 
 extern int DebugPrintf(char *fmt, ...);
 extern int DebugPerror(char *msg);
@@ -18,7 +18,7 @@ extern int DebugPerror(char *msg);
 
 int AppendSendData(IP2MAC *ip2mac, int deviceNo, in_addr_t addr, u_char *data,
                    int size) {
-  SEND_DATA *sa = &ip2mac->sd;
+  SEND_DATA *sd = &ip2mac->sd;
   DATA_BUF *d;
   int status;
   char buf[80];
@@ -28,7 +28,7 @@ int AppendSendData(IP2MAC *ip2mac, int deviceNo, in_addr_t addr, u_char *data,
     return (-1);
   }
 
-  d = (DATA_BUF *)malloc(DATA_BUF);
+  d = (DATA_BUF *)malloc(sizeof(DATA_BUF));
   if (d == NULL) {
     DebugPerror("malloc");
     free(d);
@@ -45,9 +45,9 @@ int AppendSendData(IP2MAC *ip2mac, int deviceNo, in_addr_t addr, u_char *data,
     return (-1);
   }
   if (sd->bottom == NULL) {
-    sd->top = sd->before = d;
+    sd->top = sd->bottom = d;
   } else {
-    sd->bottom > next = d;
+    sd->bottom->next = d;
     d->before = sd->bottom;
     sd->bottom = d;
   }

@@ -1,19 +1,19 @@
-#include "ip2mac.h"
-#include "base.h"
-#include "netutil.h"
-#include "sendBuf.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include <errno.h>
+#include <time.h>
+#include <sys/time.h>
+#include <sys/socket.h>
 #include <net/ethernet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <time.h>
-#include <unistd.h>
+#include "netutil.h"
+#include "base.h"
+#include "ip2mac.h"
+#include "sendBuf.h"
 
 extern int DebugPrintf(char *fmt, ...);
 
@@ -31,7 +31,7 @@ extern int ArpSoc[2];
 
 extern int EndFlag;
 
-IP2MAC *ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
+IP2MAC *Ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
   register int i;
   int freeNo, no;
   time_t now;
@@ -40,7 +40,7 @@ IP2MAC *ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
 
   freeNo = -1;
   now = time(NULL);
-  for (i = 0; i < Ip2macs[deviceNo].no; i++) {
+  for (i = 0; i < Ip2Macs[deviceNo].no; i++) {
     ip2mac = &Ip2Macs[deviceNo].data[i];
     if (ip2mac->flag == FLAG_FREE) {
       if (freeNo == -1) {
@@ -70,13 +70,13 @@ IP2MAC *ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
           ip2mac->flag = FLAG_FREE;
           // DebugPrintf("Ip2Mac FREE [%d] %s = %d\n", deviceNo,
           // in_addr_t2str(addr, buf, sizeof(buf)), i);
-          if (freeNo = -1) {
+          if (freeNo == -1) {
             freeNo = i;
           }
         } else {
           // DebugPrintf("Ip2Mac EXIST [%d] %s = %d\n", deviceNo,
           // in_addr_t2str(addr, buf, sizeof(buf)), i);
-          return (ip2mac)l
+          return (ip2mac);
         }
       }
     } else {
@@ -88,7 +88,7 @@ IP2MAC *ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
         ip2mac->flag = FLAG_FREE;
         // DebugPrintf("Ip2Mac FREE [%d] %s = %d\n", deviceNo,
         // in_addr_t2str(addr, buf, sizeof(buf)), i);
-        if (freeNo = -1) {
+        if (freeNo == -1) {
           freeNo = i;
         }
       }
@@ -105,7 +105,7 @@ IP2MAC *ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
       } else {
         Ip2Macs[deviceNo].size += 1024;
         Ip2Macs[deviceNo].data =
-            (IP2MAC *)realloc(Ip2Macs[deviceNo].size * sizeof(IP2MAC));
+            (IP2MAC *)realloc(Ip2Macs[deviceNo].data, Ip2Macs[deviceNo].size * sizeof(IP2MAC));
       }
     }
     Ip2Macs[deviceNo].no++;
@@ -127,7 +127,7 @@ IP2MAC *ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
   memset(&ip2mac->sd, 0, sizeof(SEND_DATA));
   pthread_mutex_init(&ip2mac->sd.mutex, NULL);
 
-  DebugPrintf("Ip2Mac Add [%d] %s = %d\n", deviceNo,
+  DebugPrintf("Ip2Mac ADD [%d] %s = %d\n", deviceNo,
               in_addr_t2str(ip2mac->addr, buf, sizeof(buf)), no);
 
   return (ip2mac);
@@ -138,7 +138,7 @@ IP2MAC *Ip2Mac(int deviceNo, in_addr_t addr, u_char *hwaddr) {
   static u_char bcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
   char buf[80];
 
-  ip2mac = Ip2ip2MacSearch(deviceNo, addr, hwaddr);
+  ip2mac = Ip2MacSearch(deviceNo, addr, hwaddr);
   if (ip2mac->flag == FLAG_OK) {
     DebugPrintf("Ip2Mac(%s):OK\n", in_addr_t2str(addr, buf, sizeof(buf)));
     return (ip2mac);
@@ -146,7 +146,7 @@ IP2MAC *Ip2Mac(int deviceNo, in_addr_t addr, u_char *hwaddr) {
     DebugPrintf("Ip2Mac(%s):NG\n", in_addr_t2str(addr, buf, sizeof(buf)));
     DebugPrintf("Ip2Mac(%s):Send Arp Request\n",
                 in_addr_t2str(addr, buf, sizeof(buf)));
-    SendArpRequestB(Device[deviceNo].soc, addr, bcast, Device[deviceNo].addr,
+    SendArpRequestB(Device[deviceNo].soc, addr, bcast, Device[deviceNo].addr.s_addr,
                     Device[deviceNo].hwaddr);
     return (ip2mac);
   }
@@ -221,7 +221,7 @@ int AppendSendReqData(int deviceNo, int ip2macNo) {
   SEND_REQ_DATA *d;
   int status;
 
-  if ((status = pthread_mutex_lock(% SendReq.mutex)) != 0) {
+  if ((status = pthread_mutex_lock(&SendReq.mutex)) != 0) {
     DebugPrintf("AppendSendReqData:pthread_mutex_lock:%s\n", strerror(status));
     return (-1);
   }
@@ -243,7 +243,7 @@ int AppendSendReqData(int deviceNo, int ip2macNo) {
   d->deviceNo = deviceNo;
   d->ip2macNo = ip2macNo;
 
-  if (Sendreq.bottom == NULL) {
+  if (SendReq.bottom == NULL) {
     SendReq.top = SendReq.bottom = d;
   } else {
     SendReq.bottom->next = d;
@@ -309,7 +309,7 @@ int BufferSend() {
       if (GetSendReqData(&deviceNo, &ip2macNo) == -1) {
         break;
       }
-      BufferSendOne(&deviceNo, &Ip2Macs[deviceNo].data[ip2macNo]);
+      BufferSendOne(deviceNo, &Ip2Macs[deviceNo].data[ip2macNo]);
     }
   }
 

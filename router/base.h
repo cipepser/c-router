@@ -4,7 +4,7 @@ typedef struct {
   struct in_addr addr, subnet, netmask;
 } DEVICE;
 
-#define FLAG_FREE
+#define FLAG_FREE 0
 #define FLAG_OK 1
 #define FLAG_NG -1
 
