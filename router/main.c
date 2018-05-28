@@ -22,7 +22,7 @@ typedef struct {
   int DebugOut;
   char *NextRouter;
 } PARAM;
-PARAM Param = {"eth1", "eth2", 1, "10.0.2.2"};
+PARAM Param = {"veth0", "eth0", 1, "10.0.2.2"};
 
 struct in_addr NextRouter;
 
