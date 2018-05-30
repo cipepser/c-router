@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 # 以下パラメータでルータをコンパイル
 # PARAM Param = {"RT_veth0", "RT_veth1", 1, "192.168.0.254"};
 
