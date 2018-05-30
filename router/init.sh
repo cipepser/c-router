@@ -43,5 +43,5 @@ sudo ip netns exec NextRouter ip route add 192.168.0.0/24 via 192.168.1.1
 sudo ip netns exec NextRouter ip route add 192.168.1.0/24 via 192.168.1.1
 
 sudo ip netns exec host sysctl -w net.ipv4.ip_forward=1
-sudo ip netns exec RT sysctl -w net.ipv4.ip_forward=1 // ./routerを実行するとオフになる
+sudo ip netns exec RT sysctl -w net.ipv4.ip_forward=1 # ./routerを実行するとオフになる
 sudo ip netns exec NextRouter sysctl -w net.ipv4.ip_forward=1
