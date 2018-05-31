@@ -22,7 +22,7 @@ typedef struct {
   int DebugOut;
   char *NextRouter;
 } PARAM;
-PARAM Param = {"veth0", "eth0", 1, "10.0.2.2"};
+PARAM Param = {"RT_veth0", "RT_veth1", 1, "192.168.1.254"};
 
 struct in_addr NextRouter;
 
@@ -188,8 +188,11 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
 
     tno = (!deviceNo);
 
+    DebugPrintf("<INFO> %s\n", in_addr_t2str(iphdr->daddr, buf, sizeof(buf)));
+    DebugPrintf("<INFO> %s\n", in_addr_t2str(Device[tno].netmask.s_addr, buf, sizeof(buf)));
+    DebugPrintf("<INFO> %s\n", in_addr_t2str(Device[tno].subnet.s_addr, buf, sizeof(buf)));
     if ((iphdr->daddr & Device[tno].netmask.s_addr) ==
-        Device[tno].netmask.s_addr) {
+        Device[tno].subnet.s_addr) {
       IP2MAC *ip2mac;
 
       DebugPrintf("[%d]:%s to TargetSegment\n", deviceNo,
