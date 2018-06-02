@@ -114,11 +114,6 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
   ptr = data;
   lest = size;
 
-  DebugPrintf("-------------------------------\n");
-  // DebugPrintf("<DEBUG> size: %d\n", size);
-  // DebugPrintf("<DEBUG> data: %d\n", sizeof(data));
-  // DebugPrintf("<DEBUG> data(p): %p\n", data);
-
   if (lest < sizeof(struct ether_header)) {
     DebugPrintf("[%d]:lest(%d) < sizeof(struct ether_header)\n", deviceNo,
                 lest);
@@ -270,9 +265,6 @@ int Router() {
           if ((size = read(Device[i].soc, buf, sizeof(buf))) <= 0) {
             DebugPerror("read");
           } else {
-            // DebugPrintf("<DEBUG> size: %d\n", size);
-            // DebugPrintf("<DEBUG> buf: %d\n", sizeof(buf));
-            // DebugPrintf("<DEBUG> buf(p): %p\n", buf);
             AnalyzePacket(i, buf, size);
           }
         }

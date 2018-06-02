@@ -42,8 +42,6 @@ int AppendSendData(IP2MAC *ip2mac, int deviceNo, in_addr_t addr, u_char *data,
   d->next = d->before = NULL;
   d->t = time(NULL);
   d->size = size;
-  // DebugPrintf("size: %d\n", size);
-  // DebugPrintf("data: %d\n", sizeof(data));
   memcpy(d->data, data, size);
 
   if ((status = pthread_mutex_lock(&sd->mutex)) != 0) {
