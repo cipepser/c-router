@@ -114,6 +114,11 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
   ptr = data;
   lest = size;
 
+  DebugPrintf("-------------------------------\n");
+  // DebugPrintf("<DEBUG> size: %d\n", size);
+  // DebugPrintf("<DEBUG> data: %d\n", sizeof(data));
+  // DebugPrintf("<DEBUG> data(p): %p\n", data);
+
   if (lest < sizeof(struct ether_header)) {
     DebugPrintf("[%d]:lest(%d) < sizeof(struct ether_header)\n", deviceNo,
                 lest);
@@ -123,7 +128,7 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
   eh = (struct ether_header *)ptr;
   ptr += sizeof(struct ether_header);
   lest -= sizeof(struct ether_header);
-
+  
   if (memcmp(&eh->ether_dhost, Device[deviceNo].hwaddr, 6) != 0) {
     DebugPrintf("[%d]:dhost not match %s\n", deviceNo,
                 my_ether_ntoa_r((u_char *)&eh->ether_dhost, buf, sizeof(buf)));
@@ -161,7 +166,7 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
     }
     iphdr = (struct iphdr *)ptr;
     ptr += sizeof(struct iphdr);
-    size -= sizeof(struct iphdr);
+    lest -= sizeof(struct iphdr);
 
     optionLen = iphdr->ihl * 4 - sizeof(struct iphdr);
     if (optionLen > 0) {
@@ -172,7 +177,7 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
 
       memcpy(option, ptr, optionLen);
       ptr += optionLen;
-      size -= optionLen;
+      lest -= optionLen;
     }
 
     if (checkIPchecksum(iphdr, option, optionLen) == 0) {
@@ -265,6 +270,9 @@ int Router() {
           if ((size = read(Device[i].soc, buf, sizeof(buf))) <= 0) {
             DebugPerror("read");
           } else {
+            // DebugPrintf("<DEBUG> size: %d\n", size);
+            // DebugPrintf("<DEBUG> buf: %d\n", sizeof(buf));
+            // DebugPrintf("<DEBUG> buf(p): %p\n", buf);
             AnalyzePacket(i, buf, size);
           }
         }
