@@ -111,6 +111,7 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
   int tno;
   u_char hwaddr[6];
 
+  DebugPrintf("--------AnalyzePacket-------\n");
   ptr = data;
   lest = size;
 
@@ -129,7 +130,8 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
                 my_ether_ntoa_r((u_char *)&eh->ether_dhost, buf, sizeof(buf)));
     return (-1);
   }
-
+  // PrintEtherHeader(eh, stdout);
+  
   if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
     struct ether_arp *arp;
 
@@ -144,11 +146,11 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
 
     if (arp->arp_op == htons(ARPOP_REQUEST)) {
       DebugPrintf("[%d]recv: ARP REQUEST: %dbytes\n", deviceNo, size);
-      Ip2Mac(deviceNo, *(in_addr_t *)arp->arp_spa, arp->arp_spa);
+      Ip2Mac(deviceNo, *(in_addr_t *)arp->arp_spa, arp->arp_sha);
     }
     if (arp->arp_op == htons(ARPOP_REPLY)) {
       DebugPrintf("[%d]recv: ARP REPLY: %dbytes\n", deviceNo, size);
-      Ip2Mac(deviceNo, *(in_addr_t *)arp->arp_spa, arp->arp_spa);
+      Ip2Mac(deviceNo, *(in_addr_t *)arp->arp_spa, arp->arp_sha);
     }
   } else if (ntohs(eh->ether_type) == ETHERTYPE_IP) {
     struct iphdr *iphdr;

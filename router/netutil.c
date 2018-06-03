@@ -144,7 +144,7 @@ char *in_addr_t2str(in_addr_t addr, char *buf, socklen_t size) {
 int PrintEtherHeader(struct ether_header *eh, FILE *fp) {
   char buf[80];
 
-  fprintf(fp, "ether_header-----------------------\n");
+  fprintf(fp, "-------------ether_header-------------\n");
   fprintf(fp, "ether_dhost=%s\n",
           my_ether_ntoa_r(eh->ether_dhost, buf, sizeof(buf)));
   fprintf(fp, "ether_shost=%s\n",
@@ -165,6 +165,7 @@ int PrintEtherHeader(struct ether_header *eh, FILE *fp) {
     fprintf(fp, "(unknown)\n");
     break;
   }
+  fprintf(fp, "----------ether_header(end)-----------\n");
 
   return (0);
 }

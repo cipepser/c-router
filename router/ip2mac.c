@@ -38,6 +38,8 @@ IP2MAC *Ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
   char buf[80];
   IP2MAC *ip2mac;
 
+  DebugPrintf("----Ip2MacSearch----\n");
+
   freeNo = -1;
   now = time(NULL);
   for (i = 0; i < Ip2Macs[deviceNo].no; i++) {
@@ -52,14 +54,16 @@ IP2MAC *Ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
       if (ip2mac->flag == FLAG_OK) {
         ip2mac->lastTime = now;
       }
+      // DebugPrintf("dst MAC(xxx): %s\n", my_ether_ntoa_r(ip2mac->hwaddr, buf, sizeof(buf)));
       if (hwaddr != NULL) {
         memcpy(ip2mac->hwaddr, hwaddr, 6);
         ip2mac->flag = FLAG_OK;
         if (ip2mac->sd.top != NULL) {
           AppendSendReqData(deviceNo, i);
         }
-        // DebugPrintf("Ip2Mac EXIST [%d] %s = %d\n", deviceNo,
-        // in_addr_t2str(addr, buf, sizeof(buf)), i);
+        // DebugPrintf("dst MAC(EXIST): %s\n", my_ether_ntoa_r(ip2mac->hwaddr, buf, sizeof(buf)));
+        DebugPrintf("Ip2Mac EXIST [%d] %s = %d\n", deviceNo,
+        in_addr_t2str(addr, buf, sizeof(buf)), i);
         return (ip2mac);
       } else {
         if ((ip2mac->flag == FLAG_OK &&
@@ -68,14 +72,14 @@ IP2MAC *Ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
              now - ip2mac->lastTime > IP2MAC_NG_TIMEOUT_SEC)) {
           FreeSendData(ip2mac);
           ip2mac->flag = FLAG_FREE;
-          // DebugPrintf("Ip2Mac FREE [%d] %s = %d\n", deviceNo,
-          // in_addr_t2str(addr, buf, sizeof(buf)), i);
+          DebugPrintf("Ip2Mac FREE [%d] %s = %d\n", deviceNo,
+          in_addr_t2str(addr, buf, sizeof(buf)), i);
           if (freeNo == -1) {
             freeNo = i;
           }
         } else {
-          // DebugPrintf("Ip2Mac EXIST [%d] %s = %d\n", deviceNo,
-          // in_addr_t2str(addr, buf, sizeof(buf)), i);
+          DebugPrintf("Ip2Mac EXIST [%d] %s = %d\n", deviceNo,
+          in_addr_t2str(addr, buf, sizeof(buf)), i);
           return (ip2mac);
         }
       }
@@ -86,8 +90,8 @@ IP2MAC *Ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
            now - ip2mac->lastTime > IP2MAC_NG_TIMEOUT_SEC)) {
         FreeSendData(ip2mac);
         ip2mac->flag = FLAG_FREE;
-        // DebugPrintf("Ip2Mac FREE [%d] %s = %d\n", deviceNo,
-        // in_addr_t2str(addr, buf, sizeof(buf)), i);
+        DebugPrintf("Ip2Mac FREE [%d] %s = %d\n", deviceNo,
+        in_addr_t2str(addr, buf, sizeof(buf)), i);
         if (freeNo == -1) {
           freeNo = i;
         }
@@ -130,17 +134,20 @@ IP2MAC *Ip2MacSearch(int deviceNo, in_addr_t addr, u_char *hwaddr) {
   DebugPrintf("Ip2Mac ADD [%d] %s = %d\n", deviceNo,
               in_addr_t2str(ip2mac->addr, buf, sizeof(buf)), no);
 
+  DebugPrintf("dst MAC: %s\n", my_ether_ntoa_r(ip2mac->hwaddr, buf, sizeof(buf)));
+
   return (ip2mac);
 }
 
 IP2MAC *Ip2Mac(int deviceNo, in_addr_t addr, u_char *hwaddr) {
   IP2MAC *ip2mac;
   static u_char bcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-  char buf[80];
+  char buf[1500];
 
   ip2mac = Ip2MacSearch(deviceNo, addr, hwaddr);
   if (ip2mac->flag == FLAG_OK) {
     DebugPrintf("Ip2Mac(%s):OK\n", in_addr_t2str(addr, buf, sizeof(buf)));
+    DebugPrintf("dst MAC(Ip2Mac): %s\n", my_ether_ntoa_r(ip2mac->hwaddr, buf, sizeof(buf)));
     return (ip2mac);
   } else {
     DebugPrintf("Ip2Mac(%s):NG\n", in_addr_t2str(addr, buf, sizeof(buf)));
@@ -160,6 +167,11 @@ int BufferSendOne(int deviceNo, IP2MAC *ip2mac) {
   int size;
   u_char *data;
   u_char *ptr;
+  // int len;
+
+  // char buf[80];
+  // DebugPrintf("dst IP: %s\n", my_inet_ntoa_r((struct in_addr *)&ip2mac->addr, buf, sizeof(buf)));
+  // DebugPrintf("dst MAC: %s\n", my_ether_ntoa_r(ip2mac->hwaddr, buf, sizeof(buf)));
 
   while (1) {
     if (GetSendData(ip2mac, &size, &data) == -1) {
@@ -181,6 +193,10 @@ int BufferSendOne(int deviceNo, IP2MAC *ip2mac) {
     }
 
     memcpy(eh.ether_dhost, ip2mac->hwaddr, 6);
+    // char buf[80];
+    // DebugPrintf("dhost: %s\n", my_ether_ntoa_r(ip2mac->hwaddr, buf, sizeof(buf)));
+    // DebugPrintf("daddr: %s\n", my_inet_ntoa_r((struct in_addr *)&ip2mac->addr, buf, sizeof(buf)));
+    // memcpy(eh.ether_shost, Device[deviceNo].hwaddr, 6);
     memcpy(data, &eh, sizeof(struct ether_header));
 
     DebugPrintf("iphdr.ttl %d->%d\n", iphdr.ttl, iphdr.ttl - 1);
@@ -192,10 +208,14 @@ int BufferSendOne(int deviceNo, IP2MAC *ip2mac) {
     memcpy(data + sizeof(struct ether_header), &iphdr, sizeof(struct iphdr));
 
     DebugPrintf("write:BufferSendOne:[%d] %dbytes\n", deviceNo, size);
-    write(Device[deviceNo].soc, data, size);
+    // PrintEtherHeader(&eh, stdout);
+    // len = ptr - data;
+    // DebugPrintf("len %dbytes\n", len);
+    // len = write(Device[deviceNo].soc, data, size);
+    // DebugPrintf("len %dbytes\n", len);
 
     // DebugPrintf("********************************[%d]\n", deviceNo);
-    // print_ether_header(&eh);
+    // PrintEtherHeader(&eh);
     // print_ip(&ip);
     // DebugPrintf("********************************[%d]\n", deviceNo);
   }
@@ -309,6 +329,11 @@ int BufferSend() {
       if (GetSendReqData(&deviceNo, &ip2macNo) == -1) {
         break;
       }
+      // char buf[80];
+      // // DebugPrintf("device: %d\n", deviceNo);
+      // // DebugPrintf("dst IP: %s\n", my_inet_ntoa_r((struct in_addr *)Ip2Macs[deviceNo].data[ip2macNo].addr, buf, sizeof(buf)));
+      // DebugPrintf("dst MAC: %s\n", my_ether_ntoa_r(Ip2Macs[deviceNo].data[ip2macNo].hwaddr, buf, sizeof(buf)));
+
       BufferSendOne(deviceNo, &Ip2Macs[deviceNo].data[ip2macNo]);
     }
   }
