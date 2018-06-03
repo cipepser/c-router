@@ -130,7 +130,6 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
                 my_ether_ntoa_r((u_char *)&eh->ether_dhost, buf, sizeof(buf)));
     return (-1);
   }
-  // PrintEtherHeader(eh, stdout);
   
   if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
     struct ether_arp *arp;
@@ -190,9 +189,8 @@ int AnalyzePacket(int deviceNo, u_char *data, int size) {
 
     tno = (!deviceNo);
 
-    DebugPrintf("<INFO> %s\n", in_addr_t2str(iphdr->daddr, buf, sizeof(buf)));
-    DebugPrintf("<INFO> %s\n", in_addr_t2str(Device[tno].netmask.s_addr, buf, sizeof(buf)));
-    DebugPrintf("<INFO> %s\n", in_addr_t2str(Device[tno].subnet.s_addr, buf, sizeof(buf)));
+    DebugPrintf("<INFO> dst IP: %s\n", in_addr_t2str(iphdr->daddr, buf, sizeof(buf)));
+    DebugPrintf("<INFO> subnet: %s\n", in_addr_t2str(Device[tno].netmask.s_addr, buf, sizeof(buf)));
     if ((iphdr->daddr & Device[tno].netmask.s_addr) ==
         Device[tno].subnet.s_addr) {
       IP2MAC *ip2mac;
